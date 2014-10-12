@@ -8,17 +8,6 @@ import "dart:async";
 // TODO: Make this a config option
 const String BASE_URL = "https://saleslogix.myjetbrains.com/youtrack/rest";
 
-
-List<String> PROJECTS = [
-    "BD",
-    "BI",
-    "CRSP",
-    "JADE",
-    "MBL",
-    "OC",
-    "SAA",
-    "SCL"]; // TODO: Fetch this dynamically
-
 const EXIT_CODE_OK = 0;
 const EXIT_CODE_ERROR = 1;
 
@@ -29,14 +18,16 @@ void main() {
     print("Login results: ${res.reasonPhrase}");
 
     if (res.statusCode == HttpStatus.OK) {
-      return Future.forEach(PROJECTS, (String project) {
-        return exportIssues(client, project, res).then((File f) {
-          print("Wrote file ${f.path}.");
+      getProjects(client, res).then((List<Project> projects) {
+        Future.forEach(projects, (Project project) {
+          return exportIssues(client, project.shortName, res).then((File f) {
+            print("Wrote file ${f.path}.");
+          });
+        }).then((_) {
+          print("Done writing files. Shutting down.");
+          client.close();
+          exit(EXIT_CODE_OK);
         });
-      }).then((_) {
-        print("Done writing files. Shutting down.");
-        client.close();
-        exit(EXIT_CODE_OK);
       });
     } else {
       // Bad login
@@ -75,4 +66,40 @@ Future<File> exportIssues(HttpClient client, String project,
       return foo.writeAsString(val, mode: WRITE);
     });
   });
+}
+
+Future<List<Project>> getProjects(HttpClient client,
+    HttpClientResponse prevResp) {
+  var projectsUrl = "${BASE_URL}/project/all";
+  return client.getUrl(Uri.parse(projectsUrl)).then((HttpClientRequest req) {
+    req.cookies.addAll(prevResp.cookies);
+    req.headers.add("Accept", "application/json");
+    return req.close();
+  }).then((HttpClientResponse res) {
+    return res.transform(UTF8.decoder).join('').then((String val) {
+      List<Map> json = JSON.decode(val);
+      List<Project> results = new List<Project>();
+      json.forEach((Map entry) {
+        results.add(new Project.fromJson(entry));
+      });
+
+      return results;
+    });
+  });
+}
+
+class Project {
+  String name;
+  String shortName;
+
+  Project(this.name, this.shortName);
+
+  Project.fromJson(Map json) {
+    name = json['name'];
+    shortName = json['shortName'];
+  }
+
+  String toString() {
+    return "Project{name: {$name}, shortName: ${shortName}}";
+  }
 }
