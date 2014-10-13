@@ -4,6 +4,7 @@
 import "dart:io";
 import "dart:convert";
 import "dart:async";
+import "project.dart";
 
 // TODO: Make this a config option
 const String BASE_URL = "https://saleslogix.myjetbrains.com/youtrack/rest";
@@ -86,20 +87,4 @@ Future<List<Project>> getProjects(HttpClient client,
       return results;
     });
   });
-}
-
-class Project {
-  String name;
-  String shortName;
-
-  Project(this.name, this.shortName);
-
-  Project.fromJson(Map json) {
-    name = json['name'];
-    shortName = json['shortName'];
-  }
-
-  String toString() {
-    return "Project{name: {$name}, shortName: ${shortName}}";
-  }
 }
