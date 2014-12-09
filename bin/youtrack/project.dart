@@ -1,10 +1,10 @@
-class Project {
+class YouTrackProject {
   String name;
   String shortName;
 
-  Project(this.name, this.shortName);
+  YouTrackProject(this.name, this.shortName);
 
-  Project.fromJson(Map json) {
+  YouTrackProject.fromJson(Map json) {
     name = json['name'];
     shortName = json['shortName'];
   }
