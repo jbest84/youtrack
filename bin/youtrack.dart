@@ -50,21 +50,23 @@ Future<HttpClientResponse> login(HttpClient client) async {
   return req.close();
 }
 
-Future<File> exportIssues (HttpClient client, String project,
-    HttpClientResponse prevResp) async {
+Future<File> exportIssues(
+    HttpClient client, String project, HttpClientResponse prevResp) async {
   var exportURL =
-      "${BASE_URL}/export/${project}/issues?max=5000";// The max param in this URL should match what the administrator has configured in youtrack settings
+      "${BASE_URL}/export/${project}/issues?max=5000"; // The max param in this URL should match what the administrator has configured in youtrack settings
 
   HttpClientRequest req = await client.getUrl(Uri.parse(exportURL));
   req.cookies.addAll(prevResp.cookies);
   HttpClientResponse res = await req.close();
 
   String val = await res.transform(UTF8.decoder).join('');
-  File file = new File("${project}.xml");
+  File file = new File("exported/${project}.xml");
+  file.createSync(recursive: true);
   return file.writeAsString(val, mode: WRITE);
 }
 
-Future<List<YouTrackProject>> getYouTrackProjects(HttpClient client, HttpClientResponse prev) async {
+Future<List<YouTrackProject>> getYouTrackProjects(
+    HttpClient client, HttpClientResponse prev) async {
   var projectsUrl = "${BASE_URL}/project/all";
 
   HttpClientResponse res = await getResponse(client, projectsUrl, prev);
@@ -78,9 +80,8 @@ Future<List<YouTrackProject>> getYouTrackProjects(HttpClient client, HttpClientR
   return results;
 }
 
-Future<HttpClientResponse> getResponse(HttpClient client, String url,
-    HttpClientResponse prev) async {
-
+Future<HttpClientResponse> getResponse(
+    HttpClient client, String url, HttpClientResponse prev) async {
   HttpClientRequest req = await client.getUrl(Uri.parse(url));
   req.cookies.addAll(prev.cookies);
   req.headers.add("Accept", "application/json");
