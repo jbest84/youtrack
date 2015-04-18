@@ -2,5 +2,3 @@ name: youtrack
 description: A sample command-line application
 environment:
   sdk: '>=1.8.0'
-dependencies:
-  xml2json: any

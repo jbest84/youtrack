@@ -5,7 +5,6 @@ import "dart:io";
 import "dart:convert";
 import "dart:async";
 import "youtrack/project.dart";
-import "package:xml2json/xml2json.dart";
 
 // TODO: Make this a config option
 const String BASE_URL = "https://saleslogix.myjetbrains.com/youtrack/rest";
@@ -61,14 +60,11 @@ Future<File> exportIssues(
   HttpClientResponse res = await req.close();
 
   String val = await res.transform(UTF8.decoder).join('');
+  val = val.replaceAll("\n", "\\n");
+  val = val.replaceAll("\r", "\\r");
   File xmlFile = new File("exported/${project}.xml");
-  File jsonFile = new File("exported/${project}.json");
   xmlFile.createSync(recursive: true);
-  jsonFile.createSync(recursive: true);
-  Xml2Json converter = new Xml2Json();
-  converter.parse(val);
-  await xmlFile.writeAsString(val, mode: WRITE);
-  return jsonFile.writeAsString(converter.toGData(), mode: WRITE);
+  return xmlFile.writeAsString(val, mode: WRITE);
 }
 
 Future<List<YouTrackProject>> getYouTrackProjects(
